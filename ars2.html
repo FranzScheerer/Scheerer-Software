@@ -1,0 +1,264 @@
+<!--
+h5: 6461FB1983BA8ECE875EA5D274D2A7FB401EAF36B8E34D6037EFCB294B1466
+//*
+//# **********************************************************************
+//# ** MD.c Source file for stream cipher based hash                    **
+//# ** Franz Scherer Software  Perfect Stream Cipher based Hash         **
+//# ** Created: 09/04/2016                                              **
+//# **********************************************************************
+//# */
+
+//#/*
+//# **********************************************************************
+//# ** Copyright (C) 2016, Scheerer Software, All rights reserved.      **
+//# **                                                                  **
+//# ** License to copy and use this software is granted provided that   **
+//# ** it is identified as the "Franz Scheerer Software, Perfect Stream **
+//# ** Cipher based Hash Algorithm" in all material mentioning or       ** 
+//# ** referencing this software or this function.                      **
+//# **                                                                  **
+//# ** License is also granted to make and use derivative works         **
+//# ** provided that such works are identified as "derived from         **
+//# ** Franz Scheerer Software Perfect Stream Cipher Algorithm" in all  **
+//# ** material mentioning or referencing the derived work.             **
+//# **                                                                  **
+//# ** Franz Scheerer Software makes no representations concerning      **
+//# ** either the merchantability of this software or the suitability   **
+//# ** of this software for any particular purpose.  It is provided "as **
+//# ** is" without express or implied warranty of any kind.             **
+//# **                                                                  **
+//# ** These notices must be retained in any copies of any part of this **
+//# ** documentation and/or software.                                   **
+//# **********************************************************************
+//# */
+-->
+<head>
+<title>Javascript - Online Signature - Rivest, Shamir and Adleman</title>
+<style>
+body {
+    background-color: lightgray;
+}
+
+h1 {
+    color: orange;
+    text-align: center;
+}
+
+p {
+    font-family: "Times New Roman";
+    font-size: 20px;
+}
+</style>
+<script src="http://peterolson.github.com/BigInteger.js/BigInteger.min.js"></script>
+<!-- <script src="bigInt.js"></script> -->
+<head>
+<script>
+<!-- 28.09.2016 Franz Scheerer - Formatierung -->
+
+var first = true
+
+function txt2bigInt(x){
+  var res = bigInt(0);
+  var i;
+  for (i=0;i < x.length; i++ )
+     res = res.times(256).add(x.charCodeAt(i))
+  return res
+}
+function bigInt2txt(x){
+  var res = '';
+  while (x.gt(0))
+  {
+     res = String.fromCharCode(x.mod(256)) + res
+     x = x.divide(256)
+  }
+  return res
+}
+function x10(x){
+  var res = '';
+  while (x.gt(0))
+  {
+     res = String.fromCharCode(x.mod(10).add(48)) + res
+     x = x.divide(10)
+  }
+  return res
+}
+
+function bigInt2num(x){
+  var res = '';
+  while (x.gt(0)){
+     res = String(x.mod(10)) + res
+     x = x.divide(10)
+  }
+  return res
+}
+
+function num2bigInt(x){
+  var res = bigInt(0);
+  var i;
+  for (i=0;i < x.length; i++ )
+     if ( x.charCodeAt(i) > 47 && x.charCodeAt(i) < 58 )
+     res = res.times(10).add(x.charCodeAt(i) - 48)
+  return res
+}
+function rsa_vsign(sig){
+  var txt = document.forms[0].ttt2.value
+  var hash = txt2bigInt(h(txt))
+  var rsa129 = bigInt("114381625757888867669235779976146612010218296721242362562561842935706935245733897830597123563958705058989075147599290026879543541")
+  var nrsa   = bigInt("365456242324385453074216251356333723715043105742799541415872863647610581804561329605014431965431266976882019292856177994190730033394350704278611616178623436262858759581495668207858172581950059062508739868542743564384323736117781306696894261731521062134605607714281144650795925731579659392217061031908248343672398316417511232519923843075307229547699245199695874394175131489052090380632185104696164108460626118183898423900577406995653589926574417930038523797994581781064166811687203576584395451556519167620733342705429445400173263956148250985371152983717837516090004094802766356818441819629542666928745886239107297613")
+
+  if (num2bigInt(sig).modPow(rsa129,nrsa).equals(hash))
+     alert("The signature was verified");
+  else
+     alert("CAUTION: The signature is WRONG");
+   
+}
+function rsa_encrypt(){
+  var txt = document.forms[0].ttt2.value
+  var hash = txt2bigInt(txt.substring(0,210))
+  var nrsa   = bigInt("7006487131882937939275508435264312844587513029104211978422734323639284314572856219603958697054755668882954243703231303148483084590877490419913513880829412218704067170899972715025312119432305915554582376381177093019118626612202023853413772658204349886929588046294427214303298608071271995030198667080997029419841277570156177955023173099921975146008043116451507010404108629206926740172402826585003078422247959056979928799070284710520846948787256952061293331495167584144613424197596118651992260681845789937802251564389768457158092975896325802089030477356593258602091890564951199741533932552006630620544967529834908772299")
+  var rsa129 = bigInt("114381625757888867669235779976146612010218296721242362562561842935706935245733897830597123563958705058989075147599290026879543541")
+  
+  alert( bigInt2num(hash.modPow(rsa129,nrsa)) )
+}
+
+function dh_exchange(){
+  var gpublic = num2bigInt(document.forms[0].ggg.value);
+  var eprivate = document.forms[0].eee.value;
+  var psafe = bigInt(2).times(bigInt(11).pow(600).add(bigInt(1846389521368))).add(1)
+//  if (! psafe.isPrime())
+//    alert (":O psafe is no prime")
+//  if (! psafe.minus(1).divide(2).isPrime() )
+//    alert (":O (psafe - 1) / 2 is no prime")
+  alert ("Public key or shared key: " + String( gpublic.modPow(eprivate, psafe)))
+}
+function h(x){
+  var hx = "0123456789abcdef";
+  var ja = jb = jc = jd = je = jf = jg = jh = 0;
+  var t, ii, r;
+  var s = [512];
+  var lx = x.length;
+  if (lx == 0) return '#0';
+
+  for (r=0; r<512; r++)
+    s[r] = (r + lx) % 512;
+  i = x.charCodeAt(0);
+  ja = x.charCodeAt(lx - 1);
+ 
+  for (ii=0; ii<lx; ii++){ 
+   for (r=0; r<4; r++){ 
+    i = (i + 1) % 512;
+    ja = (jh + s[(ja + s[i]) % 512]) % 512;
+    jb = (jb + s[ja]) % 512;
+    jc = (jc + s[jb]) % 512;
+    jd = (jd + s[jc]) % 512;
+    je = (je + s[jd]) % 512;
+    jf = (jf + s[je]) % 512;
+    jg = (jg + s[jf]) % 512;
+    jh = (jh + s[jg]) % 512;
+    t = s[jc]; s[jc] = s[i]; s[i] = t;
+    if (r==1){ 
+      ja = (ja + (t ^ x.charCodeAt(ii))) % 512;
+    } else {
+      ja = (ja ^ (t ^ x.charCodeAt(ii))) % 512;
+    }
+   }
+  }
+  for (r=0; r<512; r++){
+     i = (i + 1) % 512;
+     jb = s[(jb + s[i]) % 512];
+     t=s[jb]; s[jb]=s[i]; s[i]=t;
+  }
+  var out = ''
+  for (r=0; r<32; r++){
+    i = (i + 1) % 512;
+    ja = (ja + s[i]) % 512;
+    jb = (jb + s[ja]) % 512;
+    jc = (jc + s[jb]) % 512;
+    jd = (jc + s[jc]) % 512;
+    je = (jc + s[jd]) % 512;
+    jf = (jc + s[je]) % 512;
+    jg = (jc + s[jf]) % 512;
+    jh = (jh + s[jg]) % 512;
+    t=s[jh]; s[jh]=s[i]; s[i]=t;
+    out = out + hx.charAt(((t>>4) & 0xf)) + hx.charAt(t & 0xf);                 
+  }
+  return out;
+}
+
+  var rsa129 = bigInt("114381625757888867669235779976146612010218296721242362562561842935706935245733897830597123563958705058989075147599290026879543541")
+  var nrsa   = bigInt("42835831402196089931587053753433331543625452045983048564011684206307078323230167755708773085292890755136374620277751527609012262660413446823615707857548920859532924742112590360879295151238675017874784113011762621661765890779182176942027301300188270176945422149879219155744601577330164255849562414907040385487")
+  var pp = bigInt("42835831402196089931587053753433331543625452045983048564011684206307078323230167755708773085292890755136374620277751527609012262660413446823615707857548907736068855567454153438616659908168133034053795558166814575676769669664616487866533313093552258612545506208865253309011873693175338278991632624419852666856")
+  var dsig = bigInt(2).pow(16).add(1).modInv(pp)
+  function verify(sig){
+    return bigInt2txt(sig.modPow(bigInt(2).pow(16).add(1),nrsa))
+  }
+  function sign(txt){
+    return txt2bigInt(txt).modPow(dsig,nrsa)
+  }
+  //
+  // Find smallest prime number greater or equal a random number n
+  // and greater than 2 to the power of 500 as used for RSA.
+  //
+  function nxp(n) {
+    var mx = bigInt(3*5*7*11*13*17*19)
+    var minn = bigInt(2).pow(500)
+    mx = mx.times(23*29*31+37*41*43)
+
+    while (n.lt(minn)) n = n.times(7)
+
+    if (n.mod(2).eq(0)) n = n.add(1)
+
+    while(1==1){
+      while (bigInt.gcd(n,mx).neq(1)) n = n.add(2)
+      if (bigInt(7).modPow(n.minus(1),n).eq(1))
+        return n;
+      n = n.add(2)
+    }
+  }
+  function cntx(){
+    var i = bigInt(10000000000000);
+    var e = i.add(9000)
+    cnt = 0;
+    for (; i.lt(e); i = i.add(1))
+      if ( (!i.isPrime()) && bigInt(7).modPow(i.minus(1),i).eq(1) ) cnt++;
+    alert("cnt = " + cnt);
+  }
+</script>
+<body>
+<h1>Digitale Signatur nach Rivest, Shamir und Adleman 1977 (RSA)</h1>
+<script>
+//  cntx()
+//  var px = nxp(txt2bigInt('_6553fba6f98b7e6666f4520ca6e3fc024ad86cd1  rb.py'))
+//  var py = nxp(txt2bigInt('_6553fba6f98b7e6666f4520ca6e3fc024a6cd1  rb.py'))
+//  var pp = px.minus(1).times(py.minus(1))
+//  nrsa = px.times(py)
+//  alert("pp: \n" + x10(pp) + "\n")
+//  alert("fdfdf")
+//  alert(x10(nrsa))
+ 
+
+//  ii = bigInt(rsa129).modInv(pp)
+//  var sig = txt2bigInt("6553fba6f98b7e6666f4520ca6e3fc024ad86cd1  rb.py").modPow(ii,nrsa)
+//  alert("The signature is" + x10(sig))
+//  alert( bigInt2txt(sig.modPow(rsa129, nrsa)) )
+//  document.write(x10(sig))
+//  var nrsa   = bigInt("42835831402196089931587053753433331543625452045983048564011684206307078323230167755708773085292890755136374620277751527609012262660413446823615707857548920859532924742112590360879295151238675017874784113011762621661765890779182176942027301300188270176945422149879219155744601577330164255849562414907040385487")
+//  var pp = bigInt("42835831402196089931587053753433331543625452045983048564011684206307078323230167755708773085292890755136374620277751527609012262660413446823615707857548907736068855567454153438616659908168133034053795558166814575676769669664616487866533313093552258612545506208865253309011873693175338278991632624419852666856")
+//  var dsig = bigInt(2).pow(16).add(1).modInv(pp)
+
+//  sig = num2bigInt(prompt("Please enter signature ", "123456..."))
+
+//  document.write( "<br><br><hr>sig= " + x10(sig) + "<br><br><hr>")
+//  document.write( "pp= " + x10(pp) + "<br>")
+//  document.write( "nrsa= " + x10(nrsa) + "<br><br><hr>")
+//  dsig = bigInt(2).pow(16).add(1).modInv(pp)
+
+  var rsa129 = bigInt("114381625757888867669235779976146612010218296721242362562561842935706935245733897830597123563958705058989075147599290026879543541")
+  var n = bigInt("21833983254092375680679098207385831754226717154782407542233178203855306625542791136109568346461595219834432525629478912593219993246857359768220553289268122932398079061784201133998591846947055558849091730027445897487010369309037810914576305389815026679024841316444499328285290979350120279768777336899679")
+  var sig_ = bigInt("20699084377839431017414616115942262948316276624739676725398484515312195063888888283998485783502898813918879141019027545224425285334130873578942045679586482852790851588297809039802729686216230779959871718670109022105571247484175067441260694228154386716868036629293809355584838478575814989517119494739875")
+//  alert("test = " + (sig_.eq(sig) ) ) 
+  alert("test verification = " + bigInt2txt(sig_.modPow(rsa129, n)) ) 
+ 
+
+
+</script>
