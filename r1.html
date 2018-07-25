@@ -49,8 +49,7 @@ p {
     font-size: 20px;
 }
 </style>
-<script src="http://peterolson.github.com/BigInteger.js/BigInteger.min.js"></script>
-<!-- <script src="bigInt.js"></script> -->
+<script src="bigInt.js"></script> 
 <head>
 <script>
 <!-- 28.09.2016 Franz Scheerer - Formatierung -->
@@ -201,7 +200,7 @@ function h(x){
   //
   function nxp(n) {
     var mx = bigInt(3*5*7*11*13*17*19)
-    var minn = bigInt(2).pow(500)
+    var minn = bigInt(2).pow(600)
     mx = mx.times(23*29*31+37*41*43)
 
     while (n.lt(minn)) n = n.times(7)
@@ -215,22 +214,56 @@ function h(x){
       n = n.add(2)
     }
   }
+  function cntx(){
+    var i = bigInt(10000000000000);
+    var e = i.add(9000)
+    cnt = 0;
+    for (; i.lt(e); i = i.add(1))
+      if ( (!i.isPrime()) && bigInt(7).modPow(i.minus(1),i).eq(1) ) cnt++;
+    alert("cnt = " + cnt);
+  }
 </script>
 <body>
 <h1>Digitale Signatur nach Rivest, Shamir und Adleman 1977 (RSA)</h1>
 <script>
-  var px = nxp(txt2bigInt('6553fba6f98b7e6666f4520ca6e3fc024ad86cd1  rb.py'))
-  var py = nxp(txt2bigInt('6553fba6f98b7e6666f4520ca6e3fc024a6cd1  rb.py'))
+//  cntx()
+  var px = nxp(txt2bigInt('***Franz6553fba6f98b7e6666f4520ca6e3fc024ad86cd1  rb.py'))
+  var py = nxp(txt2bigInt('***Franz6553fba6f98b7e6666f4520ca6e3fc024a6cd1  rb.py'))
   var pp = px.minus(1).times(py.minus(1))
   nrsa = px.times(py)
   alert("pp: \n" + x10(pp) + "\n")
-  alert("fdfdf")
-  alert(x10(nrsa))
  
 
   ii = bigInt(rsa129).modInv(pp)
-  var sig = txt2bigInt("6553fba6f98b7e6666f4520ca6e3fc024ad86cd1  rb.py").modPow(ii,nrsa)
-  alert(x10(sig))
+  var sig = txt2bigInt("cac73dd0897ae7b9b1779f203fbf987ff5b49029b83cb8703d77e02dec2a15d3  bigInt.js").modPow(ii,nrsa)
+//  alert("The signature is" + x10(sig))
   alert( bigInt2txt(sig.modPow(rsa129, nrsa)) )
-  document.write(x10(pp))
+  document.write(x10(sig))
+//  var nrsa   = bigInt("42835831402196089931587053753433331543625452045983048564011684206307078323230167755708773085292890755136374620277751527609012262660413446823615707857548920859532924742112590360879295151238675017874784113011762621661765890779182176942027301300188270176945422149879219155744601577330164255849562414907040385487")
+  var pp = bigInt("42835831402196089931587053753433331543625452045983048564011684206307078323230167755708773085292890755136374620277751527609012262660413446823615707857548907736068855567454153438616659908168133034053795558166814575676769669664616487866533313093552258612545506208865253309011873693175338278991632624419852666856")
+  var dsig = bigInt(2).pow(16).add(1).modInv(pp)
+
+//  sig = num2bigInt(prompt("Please enter signature ", "123456..."))
+
+//  document.write( "<br><br><hr>sig= " + x10(sig) + "<br><br><hr>")
+//  document.write( "pp= " + x10(pp) + "<br>")
+
+  document.write( "<br><br><hr>n = <br>")
+
+  document.write( "<input onfocus=\"this.select()\" value=\"" + x10(nrsa) + "\"><br><br><hr>")
+  document.write( "<br><br><hr>sig = <br>")
+
+  document.write( "<input onfocus=\"this.select()\" value=\"" + x10(sig) + "\"><br><br><hr>")
+
+  dsig = bigInt(2).pow(16).add(1).modInv(pp)
+
+  var rsa129 = bigInt("114381625757888867669235779976146612010218296721242362562561842935706935245733897830597123563958705058989075147599290026879543541")
+
+  var n = bigInt("21833983254092375680679098207385831754226717154782407542233178203855306625542791136109568346461595219834432525629478912593219993246857359768220553289268122932398079061784201133998591846947055558849091730027445897487010369309037810914576305389815026679024841316444499328285290979350120279768777336899679")
+  var sig_ = bigInt("20699084377839431017414616115942262948316276624739676725398484515312195063888888283998485783502898813918879141019027545224425285334130873578942045679586482852790851588297809039802729686216230779959871718670109022105571247484175067441260694228154386716868036629293809355584838478575814989517119494739875")
+  alert("test = " + (sig_.eq(sig) ) ) 
+  alert("test verification = " + bigInt2txt(sig_.modPow(rsa129, n)) ) 
+ 
+
+
 </script>
