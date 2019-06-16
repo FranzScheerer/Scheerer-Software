@@ -16,9 +16,7 @@ typedef struct {
 static void
 initialize_state(State *state)
 {
-    unsigned int v;
-
-    for (v = 0; v < N; v++) {
+    for (int v = 0; v < N; v++) {
         state->s[v] = (unsigned char) v;
     }
     state->a = state->i = state->j = state->k = 0;
@@ -69,7 +67,6 @@ shuffle(State *state)
     state->a = 0;
 }
 
-
 static void
 absorb_nibble(State *state, const unsigned char x)
 {
@@ -113,9 +110,6 @@ squeeze(State *state, unsigned char *out, size_t outlen)
         out[v] = drip(state);
     }
 }
-
-
-
 
 int main(){
   int ii,c;
