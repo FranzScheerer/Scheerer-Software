@@ -3,6 +3,8 @@
 #include <string.h>
 
 #define N 256
+#define NN 512
+#define N2 128
 
 typedef struct {
     unsigned char s[N];
@@ -68,7 +70,7 @@ crush(State *state)
     unsigned char x2;
     unsigned char y;
 
-    for (v = 0; v < N / 2; v++) {
+    for (v = 0; v < N2; v++) {
         y = (N - 1) - v;
         x1 = state->s[v];
         x2 = state->s[y];
@@ -85,7 +87,7 @@ crush(State *state)
 static void
 whip(State *state)
 {
-    const unsigned int r = N * 2;
+    const unsigned int r = NN;
     unsigned int       v;
 
     for (v = 0; v < r; v++) {
@@ -108,7 +110,7 @@ shuffle(State *state)
 static void
 absorb_stop(State *state)
 {
-    if (state->a == N / 2) {
+    if (state->a == N2) {
         shuffle(state);
     }
     state->a++;
@@ -120,10 +122,10 @@ absorb_nibble(State *state, const unsigned char x)
     unsigned char t;
     unsigned char y;
 
-    if (state->a == N / 2) {
+    if (state->a == N2) {
         shuffle(state);
     }
-    y = N / 2 + x;
+    y = N2 + x;
     t = state->s[state->a];
     state->s[state->a] = state->s[y];
     state->s[y] = t;
@@ -276,7 +278,7 @@ int main(){
 
   unsigned char out[32];
   
-  printf("gcc std_spritz.c :\n");
+  printf("compile source: gcc h.c :\n");
   printf("cat file | ./a.out:\n\n");
   printf("hash (SPRITZ-256):\n");
   initialize_state(&state);
