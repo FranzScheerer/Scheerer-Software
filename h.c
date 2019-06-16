@@ -7,13 +7,7 @@
 #define N2 128
 
 typedef struct {
-    unsigned char s[N];
-    unsigned char a;
-    unsigned char i;
-    unsigned char j;
-    unsigned char k;
-    unsigned char w;
-    unsigned char z;
+    unsigned char a, i, j, k, w, z, s[N];
 } State;
 
 #define LOW(B)  ((B) & 0xf)
@@ -27,10 +21,7 @@ initialize_state(State *state)
     for (v = 0; v < N; v++) {
         state->s[v] = (unsigned char) v;
     }
-    state->a = 0;
-    state->i = 0;
-    state->j = 0;
-    state->k = 0;
+    state->a = state->i = state->j = state->k = 0;
     state->w = 1;
     state->z = 0;
 }
@@ -38,13 +29,13 @@ initialize_state(State *state)
 static void
 update(State *state)
 {
-    unsigned char t;
-    unsigned char y;
+    unsigned char t,y;
 
     state->i += state->w;
     y = state->j + state->s[state->i];
     state->j = state->k + state->s[y];
-    state->k = state->i + state->k + state->s[state->j];
+    state->k = state->i + state->k 
+             + state->s[state->j];
     t = state->s[state->i];
     state->s[state->i] = state->s[state->j];
     state->s[state->j] = t;
@@ -65,10 +56,7 @@ output(State *state)
 static void
 crush(State *state)
 {
-    unsigned char v;
-    unsigned char x1;
-    unsigned char x2;
-    unsigned char y;
+    unsigned char v, x1, x2, y;
 
     for (v = 0; v < N2; v++) {
         y = (N - 1) - v;
@@ -87,10 +75,7 @@ crush(State *state)
 static void
 whip(State *state)
 {
-    const unsigned int r = NN;
-    unsigned int       v;
-
-    for (v = 0; v < r; v++) {
+    for (int v = 0; v < NN; v++) {
         update(state);
     }
     state->w += 2;
@@ -119,8 +104,7 @@ absorb_stop(State *state)
 static void
 absorb_nibble(State *state, const unsigned char x)
 {
-    unsigned char t;
-    unsigned char y;
+    unsigned char t, y;
 
     if (state->a == N2) {
         shuffle(state);
@@ -163,12 +147,10 @@ drip(State *state)
 static void
 squeeze(State *state, unsigned char *out, size_t outlen)
 {
-    size_t v;
-
     if (state->a > 0) {
         shuffle(state);
     }
-    for (v = 0; v < outlen; v++) {
+    for (size_t v = 0; v < outlen; v++) {
         out[v] = drip(state);
     }
 }
