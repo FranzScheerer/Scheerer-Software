@@ -56,7 +56,6 @@ def squeeze(out, outlen):
   
 f = open(sys.argv[1], 'r')
 msg = f.read()
-print msg
 s = []
    
 for v in range(256):
@@ -91,5 +90,9 @@ out = []
 squeeze(out, 32)
 otx = ''
 for n in out:
-  otx += num2hextxt(n)
+  if len(num2hextxt(n)) > 1 and n < 16: 
+    otx += num2hextxt(n)[1]
+  else:
+    otx += num2hextxt(n)
+    
 print "SPRITZ: ", otx
