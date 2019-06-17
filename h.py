@@ -1,3 +1,4 @@
+import sys
 
 def update():
     global a,i,j,k,w,z,s
@@ -53,7 +54,7 @@ def squeeze(out, outlen):
     for v in range(outlen):
         out.append(drip())
   
-f = open('h0.c','r')
+f = open(sys.argv[1], 'r')
 msg = f.read()
 print msg
 s = []
@@ -70,6 +71,25 @@ z = 0
 
 for c in msg:
   absorb_byte(ord(c))
+
+def num2hextxt(x):
+  res = ''
+  h__ = ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f']
+  while x > 0:
+    res = h__[x % 16] + res
+    x /= 16
+  return res
+
+def bin2num(x):
+  res = 0
+  for c in x:
+    res = (res<<8) ^ ord(c)
+  return res
+
+
 out = []
 squeeze(out, 32)
-print out
+otx = ''
+for n in out:
+  otx += num2hextxt(n)
+print "SPRITZ: ", otx
