@@ -6,7 +6,7 @@
 #define NN 512
 #define N2 128
 
- int a, i, j, k, w, z, s[N];
+int a, i, j, k, w, z, s[N];
 
 int initialize_state()
 {
@@ -19,18 +19,17 @@ int initialize_state()
     return 0;
 }
 
-int update()
+void update()
 {
     int t,y;
 
-    i = (i + w) & 256;
+    i = (i + w) % 256;
     y = (j + s[i]) % 256;
     j = (k + s[y]) % 256;
     k = (i + k + s[j]) % 256;
     t = s[i];
     s[i] = s[j];
     s[j] = t;
-    return 0;
 }
 
 int output()
@@ -102,7 +101,7 @@ void squeeze(char *out, size_t outlen)
 
 int main(){
   int c, ii;
-  char out[32];
+  unsigned char out[32];
   
   printf("compile source: gcc h.c \n");
   printf("cat file | ./a.out\n\n");
