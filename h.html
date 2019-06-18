@@ -1,0 +1,202 @@
+<head>
+<title>Javascript - Secure Hashing - Spritz Message Digest without crush</title>
+<style>
+body {
+    background-color: lightgray;
+}
+
+h1 {
+    color: orange;
+    text-align: center;
+}
+
+p {
+    font-family: "Times New Roman";
+    font-size: 20px;
+}
+</style>
+<head>
+<script>
+
+var first = true
+
+var a = 0
+var i = 0
+var j = 0
+var k = 0
+var w = 1
+var z = 0
+var s = [256]
+var out = [32]
+
+function initialize_state()
+{
+    for (v = 0; v < 256; v++) 
+        s[v] = v
+    a = 0
+    i = 0
+    j = 0
+    k = 0
+    w = 1
+    z = 0
+}
+
+function update()
+{
+    i = (i + w) % 256;
+    j = (k + s[(j + s[i]) % 256]) % 256;
+    k = (i + k + s[j]) % 256
+    t = s[i]
+    s[i] = s[j]
+    s[j] = t
+}
+
+function output()
+{
+    z = s[(j + s[(i + s[(z + k) % 256]) % 256]) % 256]
+    return z
+}
+
+function whip()
+{
+    for (v = 0; v < 512; v++) {
+        update()
+    }
+    w = (w + 2) % 256
+}
+
+function shuffle()
+{
+    whip()
+    a = 0
+}
+
+function absorb_nibble(x)
+{
+    if (a == 128) 
+        shuffle()
+    y = (128 + x) % 256
+    t = s[a]
+    s[a] = s[y]
+    s[y] = t
+    a = (a + 1) % 256
+//    ss=-128*255
+//    for (ii=0;ii<256;ii++) ss = ss + s[ii]
+//    alert(ss)
+}
+
+function absorb_byte(b)
+{
+    absorb_nibble(b % 16)
+    absorb_nibble(Math.floor(b / 16))
+}
+
+function drip()
+{
+    if (a > 0) {
+        shuffle();
+    }
+    update();
+    return output();
+}
+
+function squeeze(out, outlen)
+{
+    var v = 0;
+    if (a > 0) {
+        shuffle();
+    }
+    for (v = 0; v < outlen; v++) {
+        out[v] = drip();
+    }
+    alert(out)
+}
+
+function h(x){
+  initialize_state();
+  var ii=0;
+  for (ii=0; ii < x.length; ii++){
+      absorb_byte(x.charCodeAt(ii));
+  }
+  squeeze(out, 32);
+  return out;
+}
+
+</script>
+<body>
+<h1> Sensation </h1> - vermeintlich sicherer 
+<a href="https://www.schneier.com/blog/archives/2017/02/sha-1_collision.html">
+NIST-Standard SHA-1</a> nach &uuml;ber 20 Jahren
+geknackt.
+<h3>Quellcode in Javascript</h3>
+<form name="someform" method="post">
+<textarea id="ttt" style="font-size: 1.8em; color: red;" name="ttt" cols="95" rows="9">
+//-- 28.09.2016 - Franz Scheerer - Formatierung --
+function h(x){
+  var hx = "0123456789abcdef";
+  var i = ja = jb = jc = jd = je = jf = jg = jh = 0;
+  var t, ii, r;
+  var s = [512];
+  var lx = x.length;
+
+  if (lx == 0) return '#0';
+
+  for (r=0; r<512; r++)
+    s[r] = (r + lx) % 512;
+  i  = x.charCodeAt(0);
+  ja = x.charCodeAt(lx - 1);
+ 
+  for (ii=0; ii<lx; ii++){ 
+   for (r=0; r<4; r++){ 
+    i = (i + 1) % 512;
+    ja = (jh + s[(ja + s[i]) % 512]) % 512;
+    jb = (jb + s[ja]) % 512;
+    jc = (jc + s[jb]) % 512;
+    jd = (jd + s[jc]) % 512;
+    je = (je + s[jd]) % 512;
+    jf = (jf + s[je]) % 512;
+    jg = (jg + s[jf]) % 512;
+    jh = (jh + s[jg]) % 512;
+    t = s[jc]; s[jc] = s[i]; s[i] = t;
+    if (r==1){ 
+      ja = (ja + (t ^ x.charCodeAt(ii))) % 512;
+    } else {
+      ja = (ja ^ (t ^ x.charCodeAt(ii))) % 512;
+    }
+   }
+  }
+  for (r=0; r<512; r++){
+     i = (i + 1) % 512;
+     jb = s[(jb + s[i]) % 512];
+     t=s[jb]; s[jb]=s[i]; s[i]=t;
+  }
+  var out = ''
+  for (r=0; r<32; r++){
+    i = (i + 1) % 512;
+    ja = (ja + s[i]) % 512;
+    jb = (jb + s[ja]) % 512;
+    jc = (jc + s[jb]) % 512;
+    jd = (jc + s[jc]) % 512;
+    je = (jc + s[jd]) % 512;
+    jf = (jc + s[je]) % 512;
+    jg = (jc + s[jf]) % 512;
+    jh = (jh + s[jg]) % 512;
+    t=s[jh]; s[jh]=s[i]; s[i]=t;
+    out = out + hx.charAt(((t>>4) & 0xf)) + hx.charAt(t & 0xf);                 
+  }
+  return out;
+}
+
+nrsa = 7006487131882937939275508435264312844587513029104211978422734323639284314572856219603958697054755668882954243703231303148483084590877490419913513880829412218704067170899972715025312119432305915554582376381177093019118626612202023853413772658204349886929588046294427214303298608071271995030198667080997029419841277570156177955023173099921975146008043116451507010404108629206926740172402826585003078422247959056979928799070284710520846948787256952061293331495167584144613424197596118651992260681845789937802251564389768457158092975896325802089030477356593258602091890564951199741533932552006630620544967529834908772299L
+
+</textarea>
+<br><br><hr>
+<input style="font-size: 1.5em;" value="Berechne MD7-Hash" 
+onclick="alert('Hash MD7 wurde berechnet');location.reload();" type="button">
+Beliebigen Text eingeben und <b>MD7</b> berechnen!  
+<br>Message Digest <b><script>
+document.write(h(document.forms[0].ttt.value))</script></b>
+<br><br>
+
+
+</body>
