@@ -1,0 +1,114 @@
+#include <stdio.h>
+#include <stddef.h>
+#include <string.h>
+
+#define N  256
+#define NN 256
+#define N2 240
+
+int a, i, j, k, w, z, s[N];
+
+int initialize_state()
+{
+    for (int v = 0; v < N; v++) {
+        s[v] = v;
+    }
+    a = i = j = 0;
+    w = 1;
+    z = 0;
+    return 0;
+}
+
+void update()
+{
+    int t;
+
+    i = (i + w) % 256;
+    j = s[(j + s[i]) % 256];
+    t = s[i];
+    s[i] = s[j];
+    s[j] = t;
+}
+
+int output()
+{
+    int x1 = (i + s[z]) % 256;
+    int y2 = (j + s[x1]) % 256;
+
+    z = s[y2];
+    return z;
+}
+
+int whip()
+{
+    for (int v = 0; v < NN; v++) {
+        update();
+    }
+    w = (w + 2) % 256;
+    return 0;
+}
+
+
+int shuffle()
+{
+    whip();
+    a = 0;
+    return 0;
+}
+
+
+void absorb_nibble(int x)
+{
+    int t, y;
+
+    if (a == N2) {
+        shuffle();
+    }
+    y = (N2 + x) % 256;
+    t = s[a];
+    s[a] = s[y];
+    s[y] = t;
+    a++;
+}
+
+void absorb_byte(int b)
+{
+    absorb_nibble(b % 16);
+    absorb_nibble(b / 16);
+}
+
+int drip()
+{
+    if (a > 0) {
+        shuffle();
+    }
+    update();
+    return output();
+}
+
+void squeeze(char *out, size_t outlen)
+{
+    if (a > 0) {
+        shuffle();
+    }
+    for (int v = 0; v < outlen; v++) {
+        out[v] = drip();
+    }
+}
+
+int main(){
+  int c, ii;
+  unsigned char out[32];
+  
+  printf("compile source: gcc h.c \n");
+  printf("cat file | ./a.out\n\n");
+  printf("hash (SPRITZ-256) without CRUSH and k\n");
+  initialize_state();
+  while ( (c = fgetc(stdin)) != -1 ){
+    absorb_byte(c);
+  }
+  squeeze(out, 32);
+  for (ii=0; ii<32; ii++)  
+     printf("%02x", out[ii]);
+  printf("\n");
+}
