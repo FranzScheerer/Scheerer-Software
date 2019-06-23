@@ -7,7 +7,7 @@ def update():
     s[i], s[j] = s[j], s[i]
 
 def output():
-    global a,i,j,w,z,s
+    global a,i,j,w,s
     update()
     return s[j]
 
