@@ -2,25 +2,23 @@
 #include <stddef.h>
 #include <string.h>
 
-#define N 256
-
 typedef struct {
-    unsigned char s[N];
+    unsigned char s[256];
     unsigned char a;
     unsigned char i;
     unsigned char j;
     unsigned char w;
-} State;
+} Spritz_t;
 
 #define LOW(B)  ((B) & 0xf)
 #define HIGH(B) ((B) >> 4)
 
 static void
-initialize_state(State *state)
+initialize_state(Spritz_t *state)
 {
     unsigned int v;
 
-    for (v = 0; v < N; v++) {
+    for (v = 0; v < 256; v++) {
         state->s[v] = (unsigned char) v;
     }
     state->a = 0;
@@ -30,7 +28,7 @@ initialize_state(State *state)
 }
 
 static void
-update(State *state)
+update(Spritz_t *state)
 {
     unsigned char t;
     unsigned char y;
@@ -44,40 +42,31 @@ update(State *state)
 }
 
 static unsigned char
-output(State *state)
+output(Spritz_t *state)
 {
     return state->s[state->j];
 }
 
 static void
-whip(State *state)
+whip(Spritz_t *state)
 {
     unsigned int       v;
 
-    for (v = 0; v < N; v++) {
+    for (v = 0; v < 256; v++) {
         update(state);
     }
     state->w += 2;
 }
 
 static void
-shuffle(State *state)
+shuffle(Spritz_t *state)
 {
     whip(state);
     state->a = 0;
 }
 
 static void
-absorb_stop(State *state)
-{
-    if (state->a == 240) {
-        shuffle(state);
-    }
-    state->a++;
-}
-
-static void
-absorb_nibble(State *state, const unsigned char x)
+absorb_nibble(Spritz_t *state, const unsigned char x)
 {
     unsigned char t;
     unsigned char y;
@@ -93,14 +82,14 @@ absorb_nibble(State *state, const unsigned char x)
 }
 
 static void
-absorb_byte(State *state, const unsigned char b)
+absorb_byte(Spritz_t *state, const unsigned char b)
 {
     absorb_nibble(state, LOW(b));
     absorb_nibble(state, HIGH(b));
 }
 
 static void
-absorb(State *state, const unsigned char *msg, size_t length)
+absorb(Spritz_t *state, const unsigned char *msg, size_t length)
 {
     size_t v;
 
@@ -110,7 +99,7 @@ absorb(State *state, const unsigned char *msg, size_t length)
 }
 
 static unsigned char
-drip(State *state)
+drip(Spritz_t *state)
 {
     if (state->a > 0) {
         shuffle(state);
@@ -121,7 +110,7 @@ drip(State *state)
 }
 
 static void
-squeeze(State *state, unsigned char *out, size_t outlen)
+squeeze(Spritz_t *state, unsigned char *out, size_t outlen)
 {
     size_t v;
 
@@ -133,108 +122,9 @@ squeeze(State *state, unsigned char *out, size_t outlen)
     }
 }
 
-static void
-key_setup(State *state, const unsigned char *key, size_t keylen)
-{
-    initialize_state(state);
-    absorb(state, key, keylen);
-}
-
-int
-spritz_hash(unsigned char *out, size_t outlen,
-            const unsigned char *msg, size_t msglen)
-{
-    State         state;
-    unsigned char r;
-
-    if (outlen > 255) {
-        return -1;
-    }
-    r = (unsigned char) outlen;
-    initialize_state(&state);
-    absorb(&state, msg, msglen);
-    absorb_stop(&state);
-    absorb(&state, &r, 1U);
-    squeeze(&state, out, outlen);
-
-    return 0;
-}
-
-int
-spritz_stream(unsigned char *out, size_t outlen,
-              const unsigned char *key, size_t keylen)
-{
-    State state;
-
-    initialize_state(&state);
-    absorb(&state, key, keylen);
-    squeeze(&state, out, outlen);
-
-    return 0;
-}
-
-int
-spritz_encrypt(unsigned char *out, const unsigned char *msg, size_t msglen,
-               const unsigned char *nonce, size_t noncelen,
-               const unsigned char *key, size_t keylen)
-{
-    State  state;
-    size_t v;
-
-    key_setup(&state, key, keylen);
-    absorb_stop(&state);
-    absorb(&state, nonce, noncelen);
-    for (v = 0; v < msglen; v++) {
-        out[v] = msg[v] + drip(&state);
-    }
-
-    return 0;
-}
-
-int
-spritz_decrypt(unsigned char *out, const unsigned char *c, size_t clen,
-               const unsigned char *nonce, size_t noncelen,
-               const unsigned char *key, size_t keylen)
-{
-    State  state;
-    size_t v;
-
-    key_setup(&state, key, keylen);
-    absorb_stop(&state);
-    absorb(&state, nonce, noncelen);
-    for (v = 0; v < clen; v++) {
-        out[v] = c[v] - drip(&state);
-    }
-
-    return 0;
-}
-
-int
-spritz_auth(unsigned char *out, size_t outlen,
-            const unsigned char *msg, size_t msglen,
-            const unsigned char *key, size_t keylen)
-{
-    State         state;
-    unsigned char r;
-
-    if (outlen > 255) {
-        return -1;
-    }
-    r = (unsigned char) outlen;
-    key_setup(&state, key, keylen);
-    absorb_stop(&state);
-    absorb(&state, msg, msglen);
-    absorb_stop(&state);
-    absorb(&state, &r, 1U);
-    squeeze(&state, out, outlen);
-
-    return 0;
-}
-
-
 int main(){
   int ii,c;
-  State state;
+  Spritz_t state;
 
   unsigned char out[32];
   
