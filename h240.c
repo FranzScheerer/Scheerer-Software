@@ -2,7 +2,7 @@
 #include <stddef.h>
 #include <string.h>
 
-int a = 0, i = 0, j = 0, w = 1, s[240];
+int a = 0, i = 0, j = 0, w = 1, s[256];
 
 void update()
 {
