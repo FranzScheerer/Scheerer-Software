@@ -9,9 +9,7 @@ typedef struct {
     unsigned char a;
     unsigned char i;
     unsigned char j;
-    unsigned char k;
     unsigned char w;
-    unsigned char z;
 } State;
 
 #define LOW(B)  ((B) & 0xf)
@@ -28,9 +26,7 @@ initialize_state(State *state)
     state->a = 0;
     state->i = 0;
     state->j = 0;
-    state->k = 0;
     state->w = 1;
-    state->z = 0;
 }
 
 static void
@@ -41,8 +37,7 @@ update(State *state)
 
     state->i += state->w;
     y = state->j + state->s[state->i];
-    state->j = state->k + state->s[y];
-    state->k = state->i + state->k + state->s[state->j];
+    state->j = state->s[y];
     t = state->s[state->i];
     state->s[state->i] = state->s[state->j];
     state->s[state->j] = t;
@@ -51,44 +46,15 @@ update(State *state)
 static unsigned char
 output(State *state)
 {
-    const unsigned char y1 = state->z + state->k;
-    const unsigned char x1 = state->i + state->s[y1];
-    const unsigned char y2 = state->j + state->s[x1];
-
-    state->z = state->s[y2];
-
-    return state->z;
-}
-
-static void
-crush(State *state)
-{
-    unsigned char v;
-    unsigned char x1;
-    unsigned char x2;
-    unsigned char y;
-
-    for (v = 0; v < N / 2; v++) {
-        y = (N - 1) - v;
-        x1 = state->s[v];
-        x2 = state->s[y];
-        if (x1 > x2) {
-            state->s[v] = x2;
-            state->s[y] = x1;
-        } else {
-            state->s[v] = x1;
-            state->s[y] = x2;
-        }
-    }
+    return state->s[state->j];
 }
 
 static void
 whip(State *state)
 {
-    const unsigned int r = N * 2;
     unsigned int       v;
 
-    for (v = 0; v < r; v++) {
+    for (v = 0; v < N; v++) {
         update(state);
     }
     state->w += 2;
@@ -98,17 +64,13 @@ static void
 shuffle(State *state)
 {
     whip(state);
-    crush(state);
-    whip(state);
-    crush(state);
-    whip(state);
     state->a = 0;
 }
 
 static void
 absorb_stop(State *state)
 {
-    if (state->a == N / 2) {
+    if (state->a == 240) {
         shuffle(state);
     }
     state->a++;
@@ -120,10 +82,10 @@ absorb_nibble(State *state, const unsigned char x)
     unsigned char t;
     unsigned char y;
 
-    if (state->a == N / 2) {
+    if (state->a == 240) {
         shuffle(state);
     }
-    y = N / 2 + x;
+    y = 240 + x;
     t = state->s[state->a];
     state->s[state->a] = state->s[y];
     state->s[y] = t;
@@ -285,6 +247,6 @@ int main(){
   }
   squeeze(&state, out, 32);
   for (ii=0; ii<32; ii++)  
-     printf("%02x", out[ii]);
+     printf("%x", out[ii]);
   printf("\n");
 }
