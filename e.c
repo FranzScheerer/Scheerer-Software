@@ -50,7 +50,7 @@ void squeeze(char *out, size_t outlen)
 
 int main(){
   int c,o;
-  unsigned char key[] = "Was ein ...";
+  unsigned char key[] = "64babb0d78945ea197adb45496010636bd635a3c59dfcb8b2ff66a301f82fa084ff7a14295f3275f9526f38f72bd28cd0315afd71d91a516a68a726d78e8b82b";
   unsigned char out[32];
   
   fprintf(stderr,"hash ");
@@ -65,7 +65,7 @@ int main(){
     update();
     o = c ^ s[j];
     absorb_byte(o);
-    fputc((unsigned char)o,stdout);
+    fputc((unsigned char)o, stdout);
   }
   squeeze(out, 32);
   for (int ii=0; ii<32; ii++)  
