@@ -64,7 +64,13 @@ def bin2num(x):
 
 def h800(x):
   global a_spritz, i_spritz, j_spritz, w_spritz, s_spritz
+  a_spritz =  i_spritz =  j_spritz = 0
+  w_spritz = 1
+  for v in range(256):
+     s_spritz[v] = v
+  
   out = []
+  
   for c in x:
     absorb_byte_spritz(ord(c))
   squeeze_spritz(out, 100)
