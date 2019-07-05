@@ -26,6 +26,7 @@ void absorb_nibble(int x)
 
 void absorb_byte(int b)
 {
+    j = j ^ b;
     absorb_nibble(b % 16);
     absorb_nibble(b / 16);
 }
@@ -50,7 +51,7 @@ void squeeze(char *out, size_t outlen)
 
 int main(){
   int c,o;
-  unsigned char key[] = "64babb0d78945ea197adb45496010636bd635a3c59dfcb8b2ff66a301f82fa084ff7a14295f3275f9526f38f72bd28cd0315afd71d91a516a68a726d78e8b82b";
+  unsigned char key[] = "PLEASE CHANGE THE KEY VALUE";
   unsigned char out[32];
   
   fprintf(stderr,"hash ");
@@ -64,7 +65,12 @@ int main(){
   while ( (c = fgetc(stdin)) != -1 ){
     update();
     o = c ^ s[j];
+    /* encrypt     */
     absorb_byte(o);
+    /****************/
+    /* decrypt     
+    absorb_byte(c);
+    *****************/
     fputc((unsigned char)o, stdout);
   }
   squeeze(out, 32);

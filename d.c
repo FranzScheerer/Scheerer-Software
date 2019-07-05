@@ -26,6 +26,7 @@ void absorb_nibble(int x)
 
 void absorb_byte(int b)
 {
+    j = j ^ b;
     absorb_nibble(b % 16);
     absorb_nibble(b / 16);
 }
@@ -67,7 +68,7 @@ int main(){
     /* encrypt     
     absorb_byte(o);
     /****************/
-    /* decrypt     */     
+    /* decrypt     */
     absorb_byte(c);
     /*****************/
     fputc((unsigned char)o, stdout);
