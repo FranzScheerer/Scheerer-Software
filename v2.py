@@ -1,133 +1,66 @@
-import sys, hashlib
-# ******************************************************************************
-# PUBLIC KEY
-#
-crabin = '1CdHQXQ3vrLhlV3035GQvMuYr97SVF/1M#UjP7ZUthdZJInFMy7SstjqZCY62C8mS8gyWlGxdFEM3KKXPStXFCfmluH2qKPuLmkoEiecbnjMNF2yu3BK65zmMuouJCyF0NIDMiuYxdEwXNJJaPUC6fFx7O9rVfPYtYBgVbP'
-afactor =  21
+import sys
+
+crabin = '4BHc94p6cZohh5KfZfvWfF1Pr8nRK77kpzdGhihgG/I2mmqlGWapPh2KvMxa825MFSiUrv2lShyKt4uadqEcDPimmRha2/8xqSi8Icp1k/T38sV109xGsoOPZEf2b5zJEkjpUtkgmOuRXRJvukbLNDdyLCkaJLV2DzmZhKT'
+afactor =  5
 bfactor =  3
 
-#crabin =  '4zmx8OD7vbXz#YssGea#JF/sdw4RyixR2KokAvbSeCPk6/M74A3ymvRr8GfKcAHxAOeW'
-#crabin += 'BnvA10kQyOM1BfTckS8ZxU#QoddVlzKKeJWIOUDYuJIpGJ#N4djuLGdhSM9RQfnU6A/i'
-#crabin += 'pmn/#LvH/C#ezSrvGGTBlVsXaY8vJ#L'
+def update_h():
+    global a_h,i_h,j_h,w_h,s_h
+    i_h = i_h + w_h 
+    if i_h > 255:
+       i_h = i_h - 256
+    j_h = j_h + s_h[ i_h ]
+    if j_h > 255:
+      j_h = s_h[ j_h - 256 ]
+    else:
+      j_h = s_h[ j_h ]
+    t = s_h[i_h] + s_h[j_h] 
+    s_h[ j_h ] = t - s_h[ j_h ]
+    s_h[ i_h ] = t - s_h[ i_h ]
 
-#afactor =  3
-#bfactor =  7
+def output_h():
+    global a_h,i_h,j_h,w_h,s_h
+    update_h()
+    return s_h[j_h]
 
-# *******************************************************************************
-# HASH FUNCTION WITH SPRITZ
-# *******************************************************************************
-
-def updateSPZ():
-    global aSPZ, iSPZ, jSPZ, wSPZ, sSPZ
-    iSPZ = (iSPZ + wSPZ) % 256
-    jSPZ = sSPZ[(jSPZ + sSPZ[ iSPZ ]) % 256]
-    sSPZ[ iSPZ ], sSPZ[ jSPZ ] = sSPZ[ jSPZ ], sSPZ[ iSPZ ]
-
-def outputSPZ():
-    global aSPZ, iSPZ, jSPZ, wSPZ, sSPZ
-    updateSPZ()
-    return sSPZ[jSPZ]
-
-def shuffleSPZ():
-    global aSPZ, iSPZ, jSPZ, wSPZ, sSPZ
+def shuffle_h():
+    global a_h,i_h,j_h,w_h,s_h
     for v in range(256):
-        updateSPZ()    
-    wSPZ = (wSPZ + 2) % 256
-    aSPZ = 0
+        update_h()    
+    w_h = (w_h + 2) % 256
+    a_h = 0
 
-def absorb_nibbleSPZ(x):
-    global aSPZ, iSPZ, jSPZ, wSPZ, sSPZ
-    if aSPZ == 240:
-        shuffleSPZ()
-    sSPZ[aSPZ], sSPZ[240 + x] = sSPZ[240 + x], sSPZ[aSPZ]
-    aSPZ = aSPZ + 1
+def absorb_nibble_h(x):
+    global a_h,i_h,j_h,w_h,s_h
+    if a_h == 241:
+        shuffle_h()
+    s_h[a_h], s_h[240 + x] = s_h[240 + x], s_h[a_h]
+    a_h = a_h + 1
 
-def absorb_byteSPZ(b):
-    absorb_nibbleSPZ(b % 16)
-    absorb_nibbleSPZ(b / 16)
+def absorb_byte_h(b):
+    absorb_nibble_h(b % 16)
+    absorb_nibble_h(b / 16)
 
-def squeezeSPZ(out, outlen):
-    global aSPZ, iSPZ, jSPZ, wSPZ, sSPZ
-    if aSPZ != 0:
-        shuffleSPZ()
+def squeeze_h(out, outlen):
+    global a_h,i_h,j_h,w_h,s_h
+    shuffle_h()
     for v in range(outlen):
-        out.append( outputSPZ() )
-
-def hg(x):
-  global aSPZ, iSPZ, jSPZ, wSPZ, sSPZ
-  jSPZ = iSPZ = aSPZ = 0
-  wSPZ = 1
-  sSPZ = range(256)
-  for c in x:
-     absorb_byteSPZ(ord(c)) 
-  res = []
-  squeezeSPZ(res, 128)
-  out = 0 
-  for bx in res:
-    out = (out<<8) + bx
-  return out % (2**1000)
-
-#def h( arg ):
-#  cstr_ =  hashlib.sha256(arg).digest()
-#  out = 0 
-#  for c in cstr_:
-#    out = (out<<8) + ord(c)
-
-#  return (out << 750) % (nrabin)
+        out.append(output_h())
 
 def h(x):
-  global aSPZ, iSPZ, jSPZ, wSPZ, sSPZ
-  jSPZ = iSPZ = aSPZ = 0
-  wSPZ = 1
-  sSPZ = range(256)
-  px = "change this value ..."
-  for c in px:
-     absorb_byteSPZ(ord(c)) 
+  global a_h,i_h,j_h,w_h,s_h
+  j_h = i_h = a_h = 0
+  w_h = 1
+  s_h = range(256)
   for c in x:
-     absorb_byteSPZ(ord(c)) 
+     absorb_byte_h(ord(c)) 
   res = []
-  squeezeSPZ(res, 128)
+  squeeze_h(res, 128)
   out = 0 
   for bx in res:
     out = (out<<8) + bx
   return out % (nrabin)
 
-def bin2num(x):
-  res = 0
-  for c in x:
-    res = (res<<8) ^ ord(c)
-  return res
-
-def num2bin(x):
-  res = ''
-  while x > 0:
-    res = chr(x % 256) + res
-    x /= 256
-  return res
-
-def digital2num(x):
-  res = 0
-  for c in x:
-    if ord(c) >= 48 and ord(c) <= 57:
-      res = (res*10) + ord(c) - 48
-  return res
-
-def hextxt2num(x):
-  res = 0
-  for c in x:
-    if ord(c) < 58 and ord(c) >= 48:
-       res = (res<<4) + ord(c) - 48
-    elif ord(c) <= ord('f') and ord(c) >= ord('a'):
-       res = (res<<4) + ord(c) - 87
-  return res
-
-def num2hextxt(x):
-  res = ''
-  h__ = ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f']
-  while x > 0:
-    res = h__[x % 16] + res
-    x /= 16
-  return res
 
 def code2num(x):
   res = 0
@@ -145,49 +78,7 @@ def code2num(x):
   return res
 
 nrabin = code2num(crabin)
-
-def num2code(x):
-  res = ''
-  while x > 0:
-    y = x % 64
-    if y < 10:
-       res = chr( y + 48 ) + res
-    elif y < 36:
-       res = chr( y + 55 ) + res
-    elif y < 62:
-       res = chr( y + 61 ) + res 
-    elif y == 62:
-       res = '#' + res 
-    elif y == 63:
-       res = '/' + res 
-    x /= 64
-  return res
-
-def gcd(a,b):
-  while b > 0:
-    a,b = b,a % b
-  return a
-
-def nextPrime(p):
- while p % 4 != 3:
-   p = p + 1
- return nextPrime_(p)
   
-def nextPrime_(p):
-  m_ = 3 * 5 * 7 * 11 * 13 * 17 * 19 * 23 * 29
-  while gcd(p,m_) != 1:
-    p = p + 4 
-  if (pow(2,p-1,p) != 1):
-      return nextPrime_(p + 4)
-  if (pow(3,p-1,p) != 1):
-      return nextPrime_(p + 4)
-  if (pow(5,p-1,p) != 1):
-      return nextPrime_(p + 4)
-  if (pow(17,p-1,p) != 1):
-      return nextPrime_(p + 4)
-  return p
-  
-
 def root(m, p, q):
   x = h(m)
   a = afactor
@@ -196,20 +87,10 @@ def root(m, p, q):
     x *= a
   if pow(x, (q-1)/2, q) > 1:
     x *= b
-  if pow(x, (q-1)/2, q) != 1 or pow(x, (p-1)/2, p) != 1:
-     print 'ERROR'
-     return -1
+#  print pow(x, (q-1)/2, q)
+#  print pow(x, (p-1)/2, p)
   return (pow(p,q-2,q) * p * pow(x,(q+1)/4,q) + pow(q,p-2,p) * q * pow(x,(p+1)/4,p)) % (nrabin) 
 
-
-def writeNumber(number, fnam):
-  f = open(fnam, 'wb')
-  n = number
-  while n > 0:
-    byte = n % 256
-    n = n / 256
-    f.write(chr(byte))
-  f.close()
 
 def readNumber(fnam):
   f = open(fnam, 'rb')
@@ -224,24 +105,6 @@ def hF(fnam):
   f = open(fnam,'r')
   return h(f.read())
 
-def sF(fnam):
-  p = readNumber("p_")
-  q = readNumber("q_")
-
-  f = open(fnam,'r')
-  s = root (f.read(), p, q)
-  f.close()
-  return s
-
-# find factors a and b from primes p,q
-def f_ab(p,q):
-  res = [3,3]
-  while pow(res[0], (p-1)/2, p) == 1 or pow(res[0], (q-1)/2, q) != 1:
-    res[0] = res[0] + 1
-  while pow(res[1], (p-1)/2, p) != 1 or pow(res[1], (q-1)/2, q) == 1:
-    res[1] = res[1] + 1
-  return res
-
 def vF(s, fnam):
   a = afactor
   b = bfactor
@@ -254,23 +117,10 @@ def vF(s, fnam):
 
   return (h0 == sq) or (ha == sq) or (hb == sq) or (hab == sq)
  
-print "\n\n RABIN SIGNATURE - copyright Scheerer Software 2019 - all rights reserved\n\n"
-print "First parameter is V (Verify) or S (Sign) or G (Generate) \n\n"
+print "\n rabin signature - copyright Scheerer Software 2019 - all rights reserved\n\n"
+print "First parameter is V (Verify)\n\n"
+
 
 if  len(sys.argv) == 4 and sys.argv[1] == "V":
   print "result of verification: " + str(vF(code2num(sys.argv[3]),sys.argv[2]))
-
-if len(sys.argv) == 3 and sys.argv[1] == "S":
-  print " digital signature:\n " + num2code(sF(sys.argv[2]))
-
-if len(sys.argv) == 3 and sys.argv[1] == "G":
-  print " generate primes ... "
-  p = nextPrime( hg(sys.argv[2]) % (2**501 + 1) )  
-  q = nextPrime( hg(sys.argv[2] + '0') % (2**501 + 1) )  
-  writeNumber(p, 'p_')                     
-  writeNumber(q, 'q_')     
-  print "nrabin = ", (p * q) 
-  print "\ncrabin = \n", num2code(p * q) 
-  print "afactor = ", f_ab(p,q)[0]             
-  print "bfactor = ", f_ab(p,q)[1]             
 
